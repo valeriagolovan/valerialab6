@@ -12,6 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         if (!empty($_COOKIE['pass'])) {
             $messages[] = sprintf('<br/> <a style="color:#e6b333;" href="login.php">войти</a> в аккаунт<br/> Логин : <strong>%s</strong>
         <br/> Пароль : <strong>%s</strong> ',
+        //Проверять все данные, поступившие извне, на
+       //соответствие формату и санитизовать эти данные
+    //непосредственно перед выдачей клиентам. Фильтрация
                 strip_tags($_COOKIE['login']),
                 strip_tags($_COOKIE['pass']));
         }
@@ -80,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
     if (!$flag&&!empty($_COOKIE[session_name()]) &&
         session_start() && !empty($_SESSION['login'])) {
-        $login = $_SESSION['login'];
+        $login = $_SESSION['login']; // получаем логин пользователя из массива сессион
 
         $stmt = $db->prepare("SELECT user_id FROM users WHERE login = '$login'");
         $stmt->execute();
@@ -89,12 +92,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         {
             $user_id=$row['user_id'];
         }
-
+ 
         $request = "SELECT fio,email,birth,sex,limb,about,checkbox FROM form WHERE user_id = '$user_id'";
         $result = $db -> prepare($request);
         $result ->execute();
 
-        $data = $result->fetch(PDO::FETCH_ASSOC);
+        $data = $result->fetch(PDO::FETCH_ASSOC); //извлекаем строку с данными
 
         $values['fio'] = strip_tags($data['fio']);
         $values['email'] = strip_tags($data['email']);
@@ -139,7 +142,8 @@ else {
     } else {
         setcookie('check_value', $_POST['checkbox'], time() + 365 * 24 * 60 * 60);
     }
-    $kek = 0;
+
+    $kek = 0; 
     $myselect = $_POST['superpower'];
     for ($i = 0; $i < 5; $i++) {
         if ($myselect[$i] == NULL) {
@@ -147,13 +151,13 @@ else {
         } else
             $kek = 1;
     }
-    if (!$kek) {
+    if (!$kek) { //если $kek = 1;, то не заходим
         setcookie('abil_error', '1', time() + 24 * 60 * 60);
         $errors = TRUE;
     } else {
         setcookie('abil_value', $_POST['superpower'], time() + 365 * 24 * 60 * 60);
     }
-    if (!isset($_POST['radio1'])) {
+    if (!isset($_POST['radio1'])) { //проверяет на пустоту , если 0, то делем ошибку, если 1, то в кукис
         setcookie('limb_error', '1', time() + 24 * 60 * 60);
         $errors = TRUE;
     } else {
@@ -262,7 +266,7 @@ else {
 
             $abilities = $_POST['superpower'];
             $ability_data = array('fly', 'immortality', 'telepathy', 'telekinesis', 'teleportation');
-            foreach ($abilities as $ability) {
+            foreach ($abilities as $ability) { 
                 if (in_array($ability, $ability_data)) {
 
                     $stmt = $db->prepare("INSERT INTO all_abilities(user_id,abil_value) VALUES(:id,:abil)");
